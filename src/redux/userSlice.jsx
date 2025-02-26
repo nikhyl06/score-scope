@@ -2,7 +2,13 @@ import { createSlice } from "@reduxjs/toolkit";
 
 const userSlice = createSlice({
   name: "user",
-  initialState: { isAuthenticated: false, name: "", tests: [] },
+  initialState: {
+    isAuthenticated: false,
+    name: "",
+    tests: [],
+    todos: [],
+    progress: { completedTests: 2, totalTests: 5},
+  },
   reducers: {
     login: (state, action) => {
       state.isAuthenticated = true;
