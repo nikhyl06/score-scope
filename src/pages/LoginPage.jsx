@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { login } from "../redux/userSlice";
+import axios from "axios";
+import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginIllustration from "../assets/login-illustration.png";
@@ -9,21 +11,32 @@ import loginIllustration from "../assets/login-illustration.png";
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Simulate API call
-    dispatch(login({ name: "Student" })); // Replace with actual API logic
-    navigate("/dashboard");
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        "http://localhost:5000/api/auth/login",
+        { email, password }
+      );
+      dispatch(login({ user: response.data.user, token: response.data.token }));
+      toast.success("Logged in successfully!");
+      navigate("/dashboard");
+    } catch (err) {
+      toast.error(err.response?.data.message || "Login failed");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <Navbar />
-      <div className="max-w-4xl mx-auto pt-12 pb-20 px-6 flex flex-col md:flex-row items-center justify-between gap-8">
-        {/* Illustration Section */}
+      <div className="max-w-4xl mx-auto pt-12 pb-20 px-6 flex flex-col md:flex-row items-center justify-between gap-8 flex-1">
         <div className="w-full md:w-1/2 flex justify-center">
           <div className="border border-gray-200 rounded-md p-4 bg-white">
             <img
@@ -36,8 +49,6 @@ function LoginPage() {
             </p>
           </div>
         </div>
-
-        {/* Login Form Section */}
         <div className="w-full md:w-1/2">
           <div className="border border-gray-200 rounded-md p-6 bg-white">
             <h2 className="text-2xl font-semibold text-gray-800 mb-3 text-center">
@@ -61,6 +72,7 @@ function LoginPage() {
                   onChange={(e) => setEmail(e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <div className="mb-4">
@@ -77,13 +89,15 @@ function LoginPage() {
                   onChange={(e) => setPassword(e.target.value)}
                   className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   required
+                  disabled={loading}
                 />
               </div>
               <button
                 type="submit"
-                className="w-full bg-blue-500 text-white text-sm p-2 rounded-md hover:bg-blue-600 transition"
+                className="w-full bg-blue-500 text-white text-sm p-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
+                disabled={loading}
               >
-                Login
+                {loading ? "Logging in..." : "Login"}
               </button>
             </form>
             <div className="mt-3 text-center space-y-2">
@@ -103,8 +117,6 @@ function LoginPage() {
               </p>
             </div>
           </div>
-
-          {/* Additional Info Section */}
           <div className="border border-gray-200 rounded-md p-4 mt-4 bg-white">
             <h3 className="text-md font-medium text-gray-800 mb-2">
               Why Login?

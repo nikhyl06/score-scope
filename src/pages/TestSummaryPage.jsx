@@ -1,56 +1,103 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
+import axios from "axios";
 import Sidebar from "../components/Sidebar";
+import Footer from "../components/Footer";
 
 function TestSummaryPage() {
-  const { testId } = useParams();
+  const { testId } = useParams(); // This is the result ID, not the test ID
   const navigate = useNavigate();
-  const { tests } = useSelector((state) => state.user);
-  const test = tests.find((t) => t.id === testId) || {
-    name: `Test ${testId}`,
-    score: 75,
-  };
+  const { token } = useSelector((state) => state.user);
+  const [result, setResult] = useState(null);
 
-  // Mock data
-  const summary = {
-    totalMarks: test.score,
-    subjects: { Physics: 25, Chemistry: 30, Maths: 20 },
-    stats: { correct: 18, incorrect: 5, unattempted: 7 },
-    time: "2 hrs 45 min",
+  useEffect(() => {
+    const fetchResult = async () => {
+      try {
+        const response = await axios.get(
+          `http://localhost:5000/api/results/${testId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        setResult(response.data);
+      } catch (error) {
+        console.error("Error fetching result:", error);
+      }
+    };
+    fetchResult();
+  }, [testId, token]);
+
+  if (!result) return <div>Loading...</div>;
+
+  const { testId: test, score, totalMarks, answers } = result;
+  const subjectBreakdown = answers.reduce((acc, ans) => {
+    const subject =
+      test.questions.find((q) => q._id.toString() === ans.questionId)
+        ?.category || "Unknown";
+    acc[subject] = acc[subject] || { correct: 0, total: 0 };
+    acc[subject].total += 4; // Assuming 4 marks per question
+    if (ans.isCorrect) acc[subject].correct += 4;
+    return acc;
+  }, {});
+
+  const stats = {
+    correct: answers.filter((a) => a.isCorrect).length,
+    incorrect: answers.filter((a) => a.userAnswer && !a.isCorrect).length,
+    unattempted: test.questions.length - answers.length,
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen bg-gray-50 font-sans">
       <Sidebar />
-      <div className="flex-1 ml-64 p-8">
-        <h1 className="text-3xl font-bold text-blue-600 mb-6">
-          Test Summary: {test.name}
-        </h1>
-        <div className="bg-white p-6 rounded-lg shadow-md">
-          <h2 className="text-xl font-semibold mb-4">Overall Performance</h2>
-          <p className="text-2xl mb-4">Score: {summary.totalMarks}%</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            {Object.entries(summary.subjects).map(([subject, marks]) => (
-              <div key={subject} className="bg-gray-100 p-4 rounded-lg">
-                <h3 className="font-semibold">{subject}</h3>
-                <p>{marks}/30</p>
-              </div>
-            ))}
+      <div className="flex-1 ml-64 flex flex-col">
+        <div className="pt-12 pb-20 px-6 flex-1">
+          <div className="border border-gray-200 rounded-md p-6 bg-white">
+            <h1 className="text-2xl font-semibold text-gray-800 mb-6">
+              Test Summary: {test.name}
+            </h1>
+            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+              Overall Performance
+            </h2>
+            <p className="text-2xl mb-4">Score: {score}%</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              {Object.entries(subjectBreakdown).map(([subject, data]) => (
+                <div
+                  key={subject}
+                  className="border border-gray-200 rounded-md p-4 bg-white"
+                >
+                  <h3 className="font-semibold text-gray-800">{subject}</h3>
+                  <p className="text-sm text-gray-600">
+                    {data.correct}/{data.total}
+                  </p>
+                </div>
+              ))}
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+              <p className="text-sm text-gray-600">Correct: {stats.correct}</p>
+              <p className="text-sm text-gray-600">
+                Incorrect: {stats.incorrect}
+              </p>
+              <p className="text-sm text-gray-600">
+                Unattempted: {stats.unattempted}
+              </p>
+            </div>
+            <p className="text-sm text-gray-600">
+              Time Taken:{" "}
+              {Math.floor(
+                (new Date(result.endTime) - new Date(result.startTime)) / 60000
+              )}{" "}
+              min
+            </p>
+            <button
+              onClick={() => navigate(`/analysis/${testId}`)}
+              className="mt-6 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition"
+            >
+              View Detailed Analysis
+            </button>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-            <p>Correct: {summary.stats.correct}</p>
-            <p>Incorrect: {summary.stats.incorrect}</p>
-            <p>Unattempted: {summary.stats.unattempted}</p>
-          </div>
-          <p>Time Taken: {summary.time}</p>
-          <button
-            onClick={() => navigate(`/analysis/${testId}`)}
-            className="mt-6 w-full bg-blue-600 text-white p-3 rounded-lg hover:bg-blue-700"
-          >
-            View Detailed Analysis
-          </button>
         </div>
+        <Footer />
       </div>
     </div>
   );

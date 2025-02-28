@@ -5,10 +5,9 @@ import Footer from "../components/Footer";
 
 function LandingPage() {
   return (
-    <div className="min-h-screen bg-gray-50 font-sans">
+    <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <Navbar />
-      <div className="max-w-4xl mx-auto pt-12 pb-20 px-6">
-        {/* Hero Section */}
+      <div className="max-w-4xl mx-auto pt-12 pb-20 px-6 flex-1">
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h1 className="text-2xl font-semibold text-gray-800 mb-2">
             Master IIT JEE with Precision Analysis
@@ -31,8 +30,6 @@ function LandingPage() {
             </Link>
           </div>
         </div>
-
-        {/* Features Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="border border-gray-200 rounded-md p-4 bg-white">
             <h3 className="text-md font-medium text-gray-800 mb-1">
@@ -59,8 +56,6 @@ function LandingPage() {
             </p>
           </div>
         </div>
-
-        {/* How It Works Section */}
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
             How It Works
@@ -77,8 +72,6 @@ function LandingPage() {
             </li>
           </ul>
         </div>
-
-        {/* Testimonials Section */}
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
             What Students Say
@@ -103,9 +96,6 @@ function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* New Components */}
-        {/* Pricing Section */}
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">Pricing</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -133,8 +123,6 @@ function LandingPage() {
             Choose a Plan
           </Link>
         </div>
-
-        {/* FAQ Section */}
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
             Frequently Asked Questions
@@ -160,8 +148,6 @@ function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Statistics Section */}
         <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
           <h2 className="text-lg font-semibold text-gray-800 mb-3">
             By the Numbers
@@ -181,8 +167,6 @@ function LandingPage() {
             </div>
           </div>
         </div>
-
-        {/* Call to Action Footer */}
         <div className="border border-gray-200 rounded-md p-6 bg-white text-center">
           <h2 className="text-lg font-semibold text-gray-800 mb-2">
             Ready to Start?

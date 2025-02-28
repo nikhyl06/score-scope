@@ -4,26 +4,31 @@ const userSlice = createSlice({
   name: "user",
   initialState: {
     isAuthenticated: false,
-    name: "",
+    user: null,
+    token: null,
     tests: [],
-    todos: [],
-    progress: { completedTests: 2, totalTests: 5},
   },
   reducers: {
     login: (state, action) => {
       state.isAuthenticated = true;
-      state.name = action.payload.name;
+      state.user = action.payload.user;
+      state.token = action.payload.token;
+      state.tests = action.payload.tests || [];
     },
     logout: (state) => {
       state.isAuthenticated = false;
-      state.name = "";
+      state.user = null;
+      state.token = null;
       state.tests = [];
     },
-    addTest: (state, action) => {
+    updateUser: (state, action) => {
+      state.user = { ...state.user, ...action.payload };
+    },
+    addTestResult: (state, action) => {
       state.tests.push(action.payload);
     },
   },
 });
 
-export const { login, logout, addTest } = userSlice.actions;
+export const { login, logout, updateUser, addTestResult } = userSlice.actions;
 export default userSlice.reducer;

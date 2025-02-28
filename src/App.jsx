@@ -12,7 +12,10 @@ import AnalysisHistoryPage from "./pages/AnalysisHistoryPage";
 import StudyPlanPage from "./pages/StudyPlanPage";
 import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 import LogoutConfirmationPage from "./pages/LogoutConfirmationPage";
+import AddQuestionPage from "./pages/AddQuestionPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
@@ -21,16 +24,48 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignUpPage />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/test-selection" element={<TestSelectionPage />} />
-        <Route path="/test/:testId" element={<TestInterfacePage />} />
-        <Route path="/test-summary/:testId" element={<TestSummaryPage />} />
-        <Route path="/analysis/:testId" element={<AnalysisPage />} />
-        <Route path="/analysis-history" element={<AnalysisHistoryPage />} />
-        <Route path="/study-plan" element={<StudyPlanPage />} />
-        <Route path="/profile" element={<ProfilePage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route path="/logout" element={<LogoutConfirmationPage />} />
+        <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
+        <Route
+          path="/dashboard"
+          element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+        />
+        <Route
+          path="/test-selection"
+          element={<ProtectedRoute><TestSelectionPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/test/:testId"
+          element={<ProtectedRoute><TestInterfacePage /></ProtectedRoute>}
+        />
+        <Route
+          path="/test-summary/:testId"
+          element={<ProtectedRoute><TestSummaryPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/analysis/:testId"
+          element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/analysis-history"
+          element={<ProtectedRoute><AnalysisHistoryPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/study-plan"
+          element={<ProtectedRoute><StudyPlanPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/profile"
+          element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
+        />
+        <Route
+          path="/logout"
+          element={<ProtectedRoute><LogoutConfirmationPage /></ProtectedRoute>}
+        />
+        <Route
+          path="/add-question"
+          element={<ProtectedRoute adminOnly><AddQuestionPage /></ProtectedRoute>}
+        />
       </Routes>
     </Router>
   );
