@@ -24,7 +24,11 @@ function LoginPage() {
         { email, password }
       );
       dispatch(login({ user: response.data.user, token: response.data.token }));
-      toast.success("Logged in successfully!");
+      toast.success(
+        `Logged in as ${
+          response.data.user.role === "admin" ? "Admin" : "Student"
+        }!`
+      );
       navigate("/dashboard");
     } catch (err) {
       toast.error(err.response?.data.message || "Login failed");

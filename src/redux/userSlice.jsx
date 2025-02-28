@@ -25,7 +25,16 @@ const userSlice = createSlice({
       state.user = { ...state.user, ...action.payload };
     },
     addTestResult: (state, action) => {
-      state.tests.push(action.payload);
+      const newTests = Array.isArray(action.payload)
+        ? action.payload
+        : [action.payload];
+      state.tests = [
+        ...new Set([...state.tests, ...newTests.map((t) => t._id)]),
+      ].map(
+        (id) =>
+          newTests.find((t) => t._id === id) ||
+          state.tests.find((t) => t._id === id)
+      );
     },
   },
 });

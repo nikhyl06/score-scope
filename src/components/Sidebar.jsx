@@ -14,7 +14,10 @@ function Sidebar() {
     { name: "Study Plan", path: "/study-plan" },
     { name: "Profile", path: "/profile" },
     ...(user?.role === "admin"
-      ? [{ name: "Add Question", path: "/add-question" }]
+      ? [
+          { name: "Add Question", path: "/add-question" },
+          { name: "Manage Users", path: "/manage-users" },
+        ]
       : []),
   ];
 

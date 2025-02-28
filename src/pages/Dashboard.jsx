@@ -10,7 +10,8 @@ import Footer from "../components/Footer";
 function Dashboard() {
   const { user, token, tests } = useSelector((state) => state.user);
   const dispatch = useDispatch();
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchResults = async () => {
@@ -22,10 +23,13 @@ function Dashboard() {
             headers: { Authorization: `Bearer ${token}` },
           }
         );
-        dispatch(addTestResult(response.data));
-      } catch (error) {
-        toast.error("Error fetching test results");
-        console.error("Error fetching results:", error);
+        // Dispatch all results at once instead of one by one
+        response.data.forEach((result) => dispatch(addTestResult(result)));
+        setError(null);
+      } catch (err) {
+        setError(err.response?.data.message || "Error fetching test results");
+        toast.error(error);
+        console.error("Error fetching results:", err);
       } finally {
         setLoading(false);
       }
@@ -33,8 +37,27 @@ function Dashboard() {
     fetchResults();
   }, [dispatch, token]);
 
-  if (loading)
-    return <div className="text-center pt-20 text-gray-600">Loading...</div>;
+  if (loading) {
+    return (
+      <div className="text-center pt-20 text-gray-600">
+        Loading dashboard...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen bg-gray-50 font-sans">
+        <Sidebar />
+        <div className="flex-1 ml-64 flex flex-col">
+          <div className="pt-12 pb-20 px-6 flex-1 text-center text-red-500">
+            {error}
+          </div>
+          <Footer />
+        </div>
+      </div>
+    );
+  }
 
   const totalTests = tests.length;
   const avgScore = totalTests
@@ -59,7 +82,7 @@ function Dashboard() {
         <div className="pt-12 pb-20 px-6 flex-1">
           <div className="border border-gray-200 rounded-md p-6 mb-8 bg-white">
             <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-              Hello {user?.fullName}
+              Hello {user?.fullName || "User"}
             </h1>
             <p className="text-sm text-gray-600">
               Your dashboard for IIT JEE preparation
@@ -116,7 +139,7 @@ function Dashboard() {
                     className="border border-gray-200 rounded-md p-3 flex justify-between items-center"
                   >
                     <span className="text-sm text-gray-600">
-                      {test.testId.name} - {test.score}%
+                      {test.testId?.name || "Unnamed Test"} - {test.score}%
                     </span>
                     <Link
                       to={`/analysis/${test._id}`}

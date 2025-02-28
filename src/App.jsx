@@ -15,6 +15,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import LogoutConfirmationPage from "./pages/LogoutConfirmationPage";
 import AddQuestionPage from "./pages/AddQuestionPage";
+import ManageUsersPage from "./pages/ManageUsersPage"; // Add this import
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -28,43 +29,91 @@ function App() {
         <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
         <Route
           path="/dashboard"
-          element={<ProtectedRoute><Dashboard /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/test-selection"
-          element={<ProtectedRoute><TestSelectionPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <TestSelectionPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/test/:testId"
-          element={<ProtectedRoute><TestInterfacePage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <TestInterfacePage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/test-summary/:testId"
-          element={<ProtectedRoute><TestSummaryPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <TestSummaryPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/analysis/:testId"
-          element={<ProtectedRoute><AnalysisPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AnalysisPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/analysis-history"
-          element={<ProtectedRoute><AnalysisHistoryPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <AnalysisHistoryPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/study-plan"
-          element={<ProtectedRoute><StudyPlanPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <StudyPlanPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/profile"
-          element={<ProtectedRoute><ProfilePage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <ProfilePage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/logout"
-          element={<ProtectedRoute><LogoutConfirmationPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute>
+              <LogoutConfirmationPage />
+            </ProtectedRoute>
+          }
         />
         <Route
           path="/add-question"
-          element={<ProtectedRoute adminOnly><AddQuestionPage /></ProtectedRoute>}
+          element={
+            <ProtectedRoute adminOnly>
+              <AddQuestionPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manage-users"
+          element={
+            <ProtectedRoute adminOnly>
+              <ManageUsersPage />
+            </ProtectedRoute>
+          }
         />
       </Routes>
     </Router>
