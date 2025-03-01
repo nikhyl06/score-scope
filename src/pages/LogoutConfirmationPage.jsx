@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout } from "../redux/userSlice";
+import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 
@@ -11,6 +12,7 @@ function LogoutConfirmationPage() {
 
   const handleLogout = () => {
     dispatch(logout());
+    toast.success("Logged out successfully!");
     navigate("/");
   };
 

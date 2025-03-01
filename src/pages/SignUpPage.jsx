@@ -17,6 +17,10 @@ function SignUpPage() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
+  });
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -26,10 +30,11 @@ function SignUpPage() {
       return;
     }
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/register",
-        { fullName, email, password }
-      );
+      const response = await api.post("api/api/auth/register", {
+        fullName,
+        email,
+        password,
+      });
       dispatch(login({ user: response.data.user, token: response.data.token }));
       toast.success("Signed up successfully!");
       navigate("/dashboard");

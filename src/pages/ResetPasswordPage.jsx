@@ -11,6 +11,9 @@ function ResetPasswordPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -19,10 +22,9 @@ function ResetPasswordPage() {
       return;
     }
     try {
-      const response = await axios.post(
-        `http://localhost:5000/api/auth/reset-password/${token}`,
-        { password }
-      );
+      const response = await api.post(`/api/auth/reset-password/${token}`, {
+        password,
+      });
       setMessage(response.data.message);
       setError("");
       setTimeout(() => navigate("/login"), 2000);

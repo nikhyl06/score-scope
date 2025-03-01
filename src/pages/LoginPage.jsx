@@ -7,6 +7,9 @@ import { toast } from "react-toastify";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
 import loginIllustration from "../assets/login-illustration.png";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
 
 function LoginPage() {
   const [email, setEmail] = useState("");
@@ -19,10 +22,7 @@ function LoginPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/login",
-        { email, password }
-      );
+      const response = await api.post("/api/auth/login", { email, password });
       dispatch(login({ user: response.data.user, token: response.data.token }));
       toast.success(
         `Logged in as ${
@@ -40,7 +40,7 @@ function LoginPage() {
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <Navbar />
-      <div className="max-w-4xl mx-auto pt-12 pb-20 px-6 flex flex-col md:flex-row items-center justify-between gap-8 flex-1">
+      <div className="max-w-6xl mx-auto pt-12 pb-20 px-6 flex flex-col md:flex-row items-center justify-between gap-8 flex-1">
         <div className="w-full md:w-1/2 flex justify-center">
           <div className="border border-gray-200 rounded-md p-4 bg-white">
             <img

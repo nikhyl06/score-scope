@@ -5,6 +5,10 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function ManageUsersPage() {
   const { token, user } = useSelector((state) => state.user);
   const [users, setUsers] = useState([]);
@@ -14,12 +18,9 @@ function ManageUsersPage() {
     const fetchUsers = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/profile/users",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get("/api/profile/users", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setUsers(response.data);
       } catch (error) {
         toast.error("Error fetching users");
@@ -33,8 +34,8 @@ function ManageUsersPage() {
 
   const handleRoleChange = async (userId, newRole) => {
     try {
-      const response = await axios.put(
-        `http://localhost:5000/api/profile/users/${userId}/role`,
+      const response = await api.put(
+        `/api/profile/users/${userId}/role`,
         { role: newRole },
         { headers: { Authorization: `Bearer ${token}` } }
       );

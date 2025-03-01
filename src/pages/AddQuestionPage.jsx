@@ -7,6 +7,10 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import TestQuestion from "../components/TestQuestion";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function AddQuestionPage() {
   const navigate = useNavigate();
   const { token, user } = useSelector((state) => state.user);
@@ -118,7 +122,7 @@ function AddQuestionPage() {
     imageFiles.forEach((file) => data.append("images", file));
 
     try {
-      await axios.post("http://localhost:5000/api/questions/add", data, {
+      await api.post("/api/questions/add", data, {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "multipart/form-data",

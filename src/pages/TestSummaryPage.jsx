@@ -5,6 +5,10 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function TestSummaryPage() {
   const { testId } = useParams(); // This is the result ID, not the test ID
   const navigate = useNavigate();
@@ -14,12 +18,9 @@ function TestSummaryPage() {
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/results/${testId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/api/results/${testId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setResult(response.data);
       } catch (error) {
         console.error("Error fetching result:", error);

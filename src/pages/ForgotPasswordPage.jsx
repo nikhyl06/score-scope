@@ -3,6 +3,9 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
 
 function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -12,10 +15,7 @@ function ForgotPasswordPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/auth/forgot-password",
-        { email }
-      );
+      const response = await api.post("/api/auth/forgot-password", { email });
       setMessage(response.data.message);
       setError("");
       setEmail("");

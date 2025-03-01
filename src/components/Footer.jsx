@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function Footer() {
   const [email, setEmail] = useState("");
   const [submitted, setSubmitted] = useState(false);
@@ -10,7 +14,7 @@ function Footer() {
     e.preventDefault();
     try {
       // Placeholder for subscription API (not implemented in backend yet)
-      await axios.post("http://localhost:5000/api/subscribe", { email });
+      await api.post("/api/subscribe", { email });
       setSubmitted(true);
       setEmail("");
       setTimeout(() => setSubmitted(false), 3000);

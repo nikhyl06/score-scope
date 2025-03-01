@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { login } from "./redux/userSlice";
+import axios from "axios";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -15,10 +18,39 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import LogoutConfirmationPage from "./pages/LogoutConfirmationPage";
 import AddQuestionPage from "./pages/AddQuestionPage";
-import ManageUsersPage from "./pages/ManageUsersPage"; // Add this import
+import ManageUsersPage from "./pages/ManageUsersPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function App() {
+  const dispatch = useDispatch();
+  const { isAuthenticated } = useSelector((state) => state.user);
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const user = JSON.parse(localStorage.getItem("user"));
+
+    if (token && user && !isAuthenticated) {
+      // Verify token validity with the backend
+      const verifyToken = async () => {
+        try {
+          const response = await api.get("/api/auth/me", {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          dispatch(login({ user: response.data, token }));
+        } catch (error) {
+          console.error("Token verification failed:", error);
+          localStorage.removeItem("token");
+          localStorage.removeItem("user");
+        }
+      };
+      verifyToken();
+    }
+  }, [dispatch, isAuthenticated]);
+
   return (
     <Router>
       <Routes>
