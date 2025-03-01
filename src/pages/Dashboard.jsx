@@ -7,6 +7,10 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function Dashboard() {
   const { user, token, tests } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -17,12 +21,9 @@ function Dashboard() {
     const fetchResults = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/results/user",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get("/api/results/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         // Dispatch all results at once instead of one by one
         response.data.forEach((result) => dispatch(addTestResult(result)));
         setError(null);

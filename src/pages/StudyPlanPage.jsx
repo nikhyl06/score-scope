@@ -5,6 +5,10 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function StudyPlanPage() {
   const { token } = useSelector((state) => state.user);
   const [plan, setPlan] = useState({ tasks: [], targetScore: "" });
@@ -13,12 +17,9 @@ function StudyPlanPage() {
   useEffect(() => {
     const fetchPlan = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/study-plan",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get("/api/study-plan", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setPlan(response.data);
       } catch (error) {
         console.error("Error fetching study plan:", error);
@@ -36,8 +37,8 @@ function StudyPlanPage() {
   const addTask = async () => {
     const updatedTasks = [...plan.tasks, { ...newTask, completed: false }];
     try {
-      const response = await axios.put(
-        "http://localhost:5000/api/study-plan",
+      const response = await api.put(
+        "/api/study-plan",
         { tasks: updatedTasks, targetScore: plan.targetScore },
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -50,11 +51,9 @@ function StudyPlanPage() {
 
   const updatePlan = async () => {
     try {
-      const response = await axios.put(
-        "http://localhost:5000/api/study-plan",
-        plan,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.put("/api/study-plan", plan, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       setPlan(response.data);
     } catch (error) {
       console.error("Error updating plan:", error);

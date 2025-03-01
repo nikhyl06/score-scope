@@ -5,6 +5,10 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function ProfilePage() {
   const { user, token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
@@ -35,11 +39,9 @@ function ProfilePage() {
       if (formData.email !== user.email) updateData.email = formData.email;
       if (formData.password) updateData.password = formData.password;
 
-      const response = await axios.put(
-        "http://localhost:5000/api/profile",
-        updateData,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.put("/api/profile", updateData, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       dispatch(updateUser(response.data));
       setSuccess("Profile updated successfully!");
       setError("");

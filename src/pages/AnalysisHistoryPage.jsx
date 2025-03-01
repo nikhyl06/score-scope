@@ -5,6 +5,10 @@ import axios from "axios";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function AnalysisHistoryPage() {
   const { token, tests } = useSelector((state) => state.user);
   const [filter, setFilter] = useState({ date: "", subject: "" });
@@ -12,12 +16,9 @@ function AnalysisHistoryPage() {
   useEffect(() => {
     const fetchResults = async () => {
       try {
-        const response = await axios.get(
-          "http://localhost:5000/api/results/user",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get("/api/results/user", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         // Assuming tests are updated in Redux elsewhere; otherwise, set local state
       } catch (error) {
         console.error("Error fetching results:", error);

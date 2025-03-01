@@ -7,6 +7,9 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import TestQuestion from "../components/TestQuestion";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
 
 function TestInterfacePage() {
   const { testId } = useParams();
@@ -25,12 +28,9 @@ function TestInterfacePage() {
     const fetchTest = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/tests/${testId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/api/tests/${testId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setTest(response.data);
         const durationInMinutes = parseInt(response.data.duration) * 60; // Convert hours to seconds
         setTimeLeft(durationInMinutes);
@@ -79,8 +79,8 @@ function TestInterfacePage() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        "http://localhost:5000/api/results/submit",
+      const response = await api.post(
+        "/api/results/submit",
         { testId, answers: formattedAnswers, startTime, endTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );

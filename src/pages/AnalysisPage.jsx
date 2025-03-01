@@ -2,6 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 import { Bar } from "react-chartjs-2";
 import {
   Chart as ChartJS,
@@ -34,12 +38,9 @@ function AnalysisPage() {
   useEffect(() => {
     const fetchResult = async () => {
       try {
-        const response = await axios.get(
-          `http://localhost:5000/api/results/${testId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/api/results/${testId}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setResult(response.data);
       } catch (error) {
         console.error("Error fetching result:", error);
