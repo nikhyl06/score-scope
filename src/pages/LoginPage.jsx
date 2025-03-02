@@ -11,6 +11,8 @@ const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
 });
 
+console.log(import.meta.env.VITE_API_URL);
+
 function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
