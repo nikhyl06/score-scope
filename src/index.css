@@ -1,4 +1,6 @@
 @import "tailwindcss";
+/* index.css */
+@import "katex/dist/katex.min.css";
 @layer base {
     :root {
         /* Default Tailwind Colors (can override if needed) */

@@ -7,9 +7,6 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import TestQuestion from "../components/TestQuestion";
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
 
 function TestInterfacePage() {
   const { testId } = useParams();
@@ -24,19 +21,24 @@ function TestInterfacePage() {
   const [startTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
+  });
+
   useEffect(() => {
     const fetchTest = async () => {
       setLoading(true);
       try {
-        const response = await api.get(`/api/tests/${testId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api.get(
+          `/api/tests/${testId}`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
         setTest(response.data);
-        const durationInMinutes = parseInt(response.data.duration) * 60; // Convert hours to seconds
-        setTimeLeft(durationInMinutes);
+        setTimeLeft(response.data.metadata.timeAllotted / 1000);
       } catch (error) {
         toast.error("Error fetching test");
-        console.error("Error fetching test:", error);
       } finally {
         setLoading(false);
       }
@@ -71,7 +73,7 @@ function TestInterfacePage() {
 
   const handleSubmit = async () => {
     const endTime = new Date();
-    const formattedAnswers = Object.keys(answers).map((questionId) => ({
+    const formattedResponses = Object.keys(answers).map((questionId) => ({
       questionId,
       userAnswer: answers[questionId].userAnswer,
       timeSpent: Math.floor(answers[questionId].timeSpent / 1000),
@@ -80,8 +82,8 @@ function TestInterfacePage() {
     setLoading(true);
     try {
       const response = await api.post(
-        "/api/results/submit",
-        { testId, answers: formattedAnswers, startTime, endTime },
+        `/api/tests/submit/${testId}`,
+        { responses: formattedResponses, startTime, endTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );
       dispatch(addTestResult(response.data));
@@ -89,7 +91,6 @@ function TestInterfacePage() {
       navigate(`/test-summary/${response.data._id}`);
     } catch (error) {
       toast.error("Error submitting test");
-      console.error("Error submitting test:", error);
     } finally {
       setLoading(false);
     }

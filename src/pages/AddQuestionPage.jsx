@@ -15,7 +15,7 @@ function AddQuestionPage() {
   const navigate = useNavigate();
   const { token, user } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({
-    category: "Physics",
+    category: "physics",
     subcategory: "",
     difficulty: "Medium",
     type: "MCQ",
@@ -179,9 +179,9 @@ function AddQuestionPage() {
                   className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
                   disabled={loading}
                 >
-                  <option value="Physics">Physics</option>
-                  <option value="Chemistry">Chemistry</option>
-                  <option value="Maths">Maths</option>
+                  <option value="physics">Physics</option>
+                  <option value="chemistry">Chemistry</option>
+                  <option value="maths">Maths</option>
                 </select>
               </div>
               <div>
