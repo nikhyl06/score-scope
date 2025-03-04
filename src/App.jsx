@@ -2,7 +2,7 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "./redux/userSlice";
-import axios from "axios";
+import api from "./api";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -17,13 +17,12 @@ import ProfilePage from "./pages/ProfilePage";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
 import LogoutConfirmationPage from "./pages/LogoutConfirmationPage";
-import AddQuestionPage from "./pages/AddQuestionPage";
+import EditQuestionPage from "./pages/EditQuestionPage";
 import ManageUsersPage from "./pages/ManageUsersPage";
+import ManageQuestionsPage from "./pages/ManageQuestionsPage";
+import CreateTestPage from "./pages/CreateTestPage";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
+import MarkdownEditor from "./pages/MarkdownEditor";
 
 function App() {
   const dispatch = useDispatch();
@@ -34,10 +33,9 @@ function App() {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (token && user && !isAuthenticated) {
-      // Verify token validity with the backend
       const verifyToken = async () => {
         try {
-          const response = await api.get("/api/auth/me", {
+          const response = await api.get("/auth/me", {
             headers: { Authorization: `Bearer ${token}` },
           });
           dispatch(login({ user: response.data, token }));
@@ -132,10 +130,10 @@ function App() {
           }
         />
         <Route
-          path="/add-question"
+          path="/edit-question/:questionId"
           element={
             <ProtectedRoute adminOnly>
-              <AddQuestionPage />
+              <EditQuestionPage />
             </ProtectedRoute>
           }
         />
@@ -145,6 +143,28 @@ function App() {
             <ProtectedRoute adminOnly>
               <ManageUsersPage />
             </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/manage-questions"
+          element={
+            <ProtectedRoute adminOnly>
+              <ManageQuestionsPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-test"
+          element={
+            <ProtectedRoute adminOnly>
+              <CreateTestPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/editor"
+          element={
+              <MarkdownEditor />
           }
         />
       </Routes>

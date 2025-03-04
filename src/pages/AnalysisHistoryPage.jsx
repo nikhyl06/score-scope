@@ -38,7 +38,7 @@ function AnalysisHistoryPage() {
     return dateMatch && subjectMatch;
   });
 
-  const subjects = ["All", "Physics", "Chemistry", "Maths"];
+  const subjects = ["All", "physics", "chemistry", "maths"];
 
   return (
     <div className="flex min-h-screen bg-gray-50 font-sans">

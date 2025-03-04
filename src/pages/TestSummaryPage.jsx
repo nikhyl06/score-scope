@@ -2,50 +2,52 @@ import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
-
 function TestSummaryPage() {
-  const { testId } = useParams(); // This is the result ID, not the test ID
+  const { testId } = useParams();
   const navigate = useNavigate();
   const { token } = useSelector((state) => state.user);
   const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     const fetchResult = async () => {
+      setLoading(true);
       try {
-        const response = await api.get(`/api/results/${testId}`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        setResult(response.data);
+        const response = await axios.get(
+          `http://localhost:5001/api/tests/results/user`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
+        const latestResult = response.data.find((r) => r._id === testId);
+        setResult(latestResult);
       } catch (error) {
-        console.error("Error fetching result:", error);
+        toast.error("Error fetching result");
+      } finally {
+        setLoading(false);
       }
     };
     fetchResult();
   }, [testId, token]);
 
-  if (!result) return <div>Loading...</div>;
+  if (loading)
+    return (
+      <div className="text-center pt-20 text-gray-600">Loading summary...</div>
+    );
+  if (!result)
+    return (
+      <div className="text-center pt-20 text-gray-600">Result not found</div>
+    );
 
-  const { testId: test, score, totalMarks, answers } = result;
-  const subjectBreakdown = answers.reduce((acc, ans) => {
-    const subject =
-      test.questions.find((q) => q._id.toString() === ans.questionId)
-        ?.category || "Unknown";
-    acc[subject] = acc[subject] || { correct: 0, total: 0 };
-    acc[subject].total += 4; // Assuming 4 marks per question
-    if (ans.isCorrect) acc[subject].correct += 4;
-    return acc;
-  }, {});
-
+  const { testId: test, score, totalMarks, responses } = result;
   const stats = {
-    correct: answers.filter((a) => a.isCorrect).length,
-    incorrect: answers.filter((a) => a.userAnswer && !a.isCorrect).length,
-    unattempted: test.questions.length - answers.length,
+    correct: responses.filter((r) => r.isCorrect).length,
+    incorrect: responses.filter((r) => r.userAnswer && !r.isCorrect).length,
+    unattempted: test.questions.length - responses.length,
   };
 
   return (
@@ -58,22 +60,12 @@ function TestSummaryPage() {
               Test Summary: {test.name}
             </h1>
             <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Overall Performance
+              Performance
             </h2>
-            <p className="text-2xl mb-4">Score: {score}%</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-              {Object.entries(subjectBreakdown).map(([subject, data]) => (
-                <div
-                  key={subject}
-                  className="border border-gray-200 rounded-md p-4 bg-white"
-                >
-                  <h3 className="font-semibold text-gray-800">{subject}</h3>
-                  <p className="text-sm text-gray-600">
-                    {data.correct}/{data.total}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <p className="text-2xl mb-4">
+              Score: {score} / {totalMarks} (
+              {((score / totalMarks) * 100).toFixed(1)}%)
+            </p>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <p className="text-sm text-gray-600">Correct: {stats.correct}</p>
               <p className="text-sm text-gray-600">
@@ -83,19 +75,27 @@ function TestSummaryPage() {
                 Unattempted: {stats.unattempted}
               </p>
             </div>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-gray-600 mb-6">
               Time Taken:{" "}
               {Math.floor(
                 (new Date(result.endTime) - new Date(result.startTime)) / 60000
               )}{" "}
               min
             </p>
-            <button
-              onClick={() => navigate(`/analysis/${testId}`)}
-              className="mt-6 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition"
-            >
-              View Detailed Analysis
-            </button>
+            <div className="flex space-x-4">
+              <button
+                onClick={() => navigate(`/analysis/${testId}`)}
+                className="bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition"
+              >
+                View Detailed Analysis
+              </button>
+              <button
+                onClick={() => navigate("/test-selection")}
+                className="bg-gray-600 text-white p-2 rounded-md hover:bg-gray-700 transition"
+              >
+                Take Another Test
+              </button>
+            </div>
           </div>
         </div>
         <Footer />

@@ -64,7 +64,7 @@ function TestQuestion({
                   ? "bg-blue-500 text-white"
                   : "bg-gray-100 hover:bg-gray-200"
               }`}
-              // Removed disabled prop to allow reselection
+              disabled={answer !== undefined}
             >
               <ReactMarkdown
                 remarkPlugins={[remarkGfm, remarkMath]}
@@ -81,7 +81,7 @@ function TestQuestion({
           value={answer || ""}
           onChange={(e) => onAnswer(question._id, e.target.value)}
           className="w-full p-2 border border-gray-300 rounded-md text-sm"
-          // Removed disabled prop to allow editing
+          disabled={answer !== undefined}
         />
       )}
       <button
@@ -91,7 +91,7 @@ function TestQuestion({
             ? "bg-yellow-500 text-white"
             : "border border-gray-300 text-gray-600"
         } p-2 rounded-md`}
-        // Removed disabled prop to allow marking even after answering
+        disabled={answer !== undefined}
       >
         {isMarked ? "Unmark" : "Mark for Review"}
       </button>
