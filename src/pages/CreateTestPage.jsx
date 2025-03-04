@@ -10,6 +10,11 @@ import rehypeKatex from "rehype-katex";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function CreateTestPage() {
   const { token, user } = useSelector((state) => state.user);
   const navigate = useNavigate();
@@ -29,8 +34,8 @@ function CreateTestPage() {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "http://localhost:5001/api/questions/filter",
+      const response = await api.get(
+        "/api/questions/filter",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: {
@@ -113,7 +118,7 @@ function CreateTestPage() {
     }
     setLoading(true);
     try {
-      await axios.post("http://localhost:5001/api/tests/create", formData, {
+      await api.post("/api/tests/create", formData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       toast.success("Test created successfully!");

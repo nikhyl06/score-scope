@@ -6,6 +6,10 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function AnalysisPage() {
   const { testId } = useParams();
   const navigate = useNavigate();
@@ -13,12 +17,14 @@ function AnalysisPage() {
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(false);
 
+  console.log(result)
+
   useEffect(() => {
     const fetchResult = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:5001/api/tests/results/user`,
+        const response = await api.get(
+          `/api/tests/results/user`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -64,47 +70,9 @@ function AnalysisPage() {
               %)
             </p>
 
-            {/* Topic Performance */}
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Topic Performance
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-              {analysis.topicPerformance.map((perf, idx) => (
-                <div key={idx} className="p-4 border rounded-md bg-gray-50">
-                  <p>
-                    <strong>{perf.topic}</strong>
-                  </p>
-                  <p>
-                    Correct: {perf.correct}/{perf.total} (
-                    {((perf.correct / perf.total) * 100).toFixed(1)}%)
-                  </p>
-                </div>
-              ))}
-            </div>
+           
 
-            {/* Difficulty */}
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Difficulty
-            </h2>
-            <p className="mb-6">
-              This test was{" "}
-              {analysis.difficulty === "easy"
-                ? "JEE Mains (Easy)"
-                : "JEE Advanced (Hard)"}{" "}
-              level.
-            </p>
-
-            {/* Personalized Tips */}
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
-              Tips for Improvement
-            </h2>
-            <div className="p-4 border rounded-md bg-blue-50 mb-6">
-              <ul className="list-disc ml-6">
-                {analysis.tips.map((tip, idx) => (
-                  <li key={idx}>{tip}</li>
-                ))}
-              </ul>
-            </div>
+            
 
             <button
               onClick={() => navigate("/test-selection")}

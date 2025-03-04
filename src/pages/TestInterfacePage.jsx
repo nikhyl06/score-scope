@@ -21,12 +21,16 @@ function TestInterfacePage() {
   const [startTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
+  const api = axios.create({
+    baseURL: import.meta.env.VITE_API_URL,
+  });
+
   useEffect(() => {
     const fetchTest = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:5001/api/tests/${testId}`,
+        const response = await api.get(
+          `/api/tests/${testId}`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -77,8 +81,8 @@ function TestInterfacePage() {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `http://localhost:5001/api/tests/submit/${testId}`,
+      const response = await api.post(
+        `/api/tests/submit/${testId}`,
         { responses: formattedResponses, startTime, endTime },
         { headers: { Authorization: `Bearer ${token}` } }
       );

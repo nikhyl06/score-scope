@@ -11,6 +11,10 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import { questionHierarchy } from "../data/questionHierarchy";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function ManageQuestionsPage() {
   const { token, user } = useSelector((state) => state.user);
   const [questions, setQuestions] = useState([]);
@@ -32,8 +36,8 @@ function ManageQuestionsPage() {
   const fetchQuestions = async () => {
     setLoading(true);
     try {
-      const response = await axios.get(
-        "http://localhost:5001/api/questions/filter",
+      const response = await api.get(
+        "/api/questions/filter",
         {
           headers: { Authorization: `Bearer ${token}` },
           params: filters,

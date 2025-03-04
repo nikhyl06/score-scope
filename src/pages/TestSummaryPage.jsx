@@ -6,6 +6,10 @@ import { toast } from "react-toastify";
 import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function TestSummaryPage() {
   const { testId } = useParams();
   const navigate = useNavigate();
@@ -17,8 +21,8 @@ function TestSummaryPage() {
     const fetchResult = async () => {
       setLoading(true);
       try {
-        const response = await axios.get(
-          `http://localhost:5001/api/tests/results/user`,
+        const response = await api.get(
+          `/api/tests/results/user`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

@@ -11,6 +11,11 @@ import Sidebar from "../components/Sidebar";
 import Footer from "../components/Footer";
 import { questionHierarchy } from "../data/questionHierarchy";
 
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
+
 function EditQuestionPage() {
   const { questionId } = useParams();
   const navigate = useNavigate();
@@ -35,8 +40,8 @@ function EditQuestionPage() {
       const fetchQuestion = async () => {
         setLoading(true);
         try {
-          const response = await axios.get(
-            `http://localhost:5001/api/questions/${questionId}`,
+          const response = await api.get(
+            `/api/questions/${questionId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -125,10 +130,10 @@ function EditQuestionPage() {
     setLoading(true);
     try {
       const url = questionId
-        ? `http://localhost:5001/api/questions/${questionId}`
-        : "http://localhost:5001/api/questions/add";
+        ? `/api/questions/${questionId}`
+        : "/api/questions/add";
       const method = questionId ? "put" : "post";
-      await axios[method](
+      await api[method](
         url,
         { ...formData, options: JSON.stringify(formData.options) },
         {

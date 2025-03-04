@@ -2,7 +2,6 @@ import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { login } from "./redux/userSlice";
-import api from "./api";
 import LandingPage from "./pages/LandingPage";
 import LoginPage from "./pages/LoginPage";
 import SignUpPage from "./pages/SignUpPage";
@@ -23,6 +22,11 @@ import ManageQuestionsPage from "./pages/ManageQuestionsPage";
 import CreateTestPage from "./pages/CreateTestPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import MarkdownEditor from "./pages/MarkdownEditor";
+import axios from "axios";
+
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_URL,
+});
 
 function App() {
   const dispatch = useDispatch();

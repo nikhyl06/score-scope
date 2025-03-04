@@ -13,7 +13,6 @@ const api = axios.create({
 
 function Dashboard() {
   const { user, token, tests } = useSelector((state) => state.user);
-  console.log(tests);
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

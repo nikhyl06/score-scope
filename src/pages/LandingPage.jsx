@@ -2,8 +2,10 @@ import React from "react";
 import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import Footer from "../components/Footer";
+import { useSelector } from "react-redux";
 
 function LandingPage() {
+  const { isAuthenticated } = useSelector((state) => state.user);
   return (
     <div className="min-h-screen bg-gray-50 font-sans flex flex-col">
       <Navbar />
@@ -15,20 +17,31 @@ function LandingPage() {
           <p className="text-sm text-gray-600 mb-4">
             Personalized insights to boost your score
           </p>
-          <div className="flex space-x-3">
-            <Link
-              to="/login"
-              className="border border-blue-500 text-blue-500 text-sm px-4 py-2 rounded-md hover:bg-blue-50 transition"
-            >
-              Login
-            </Link>
-            <Link
-              to="/signup"
-              className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-600 transition"
-            >
-              Sign Up Free
-            </Link>
-          </div>
+          {isAuthenticated ? (
+            <div className="flex space-x-3">
+              <Link
+                to="/dashboard"
+                className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-600 transition"
+              >
+                Dashboard
+              </Link>
+            </div>
+          ) : (
+            <div className="flex space-x-3">
+              <Link
+                to="/login"
+                className="border border-blue-500 text-blue-500 text-sm px-4 py-2 rounded-md hover:bg-blue-50 transition"
+              >
+                Login
+              </Link>
+              <Link
+                to="/signup"
+                className="bg-blue-500 text-white text-sm px-4 py-2 rounded-md hover:bg-blue-600 transition"
+              >
+                Sign Up Free
+              </Link>
+            </div>
+          )}
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
           <div className="border border-gray-200 rounded-md p-4 bg-white">
