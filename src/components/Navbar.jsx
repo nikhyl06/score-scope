@@ -28,7 +28,7 @@ const Navbar = () => {
     { name: "Create Test", path: "/create-test" },
     { name: "Manage Questions", path: "/manage-questions" },
     { name: "Manage Users", path: "/manage-users" },
-    { name: "Add Question", path: "/manage-users" },
+    { name: "Add Question", path: "/add-question" },
   ];
 
   return (
