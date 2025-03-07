@@ -359,7 +359,6 @@ function CreateTestPage() {
             </button>
           </form>
         </div>
-        <Footer />
       </div>
     </div>
   );

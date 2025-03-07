@@ -1,17 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import axios from "axios";
+import { useDispatch } from "react-redux";
 import { addTestResult } from "../redux/userSlice";
+import api from "../api";
 import { toast } from "react-toastify";
-import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer";
+import Card from "../components/Card";
+import Button from "../components/Button";
 import TestQuestion from "../components/TestQuestion";
 
-function TestInterfacePage() {
+const TestInterfacePage = () => {
   const { testId } = useParams();
   const navigate = useNavigate();
-  const { token } = useSelector((state) => state.user);
   const dispatch = useDispatch();
   const [test, setTest] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
@@ -21,20 +20,11 @@ function TestInterfacePage() {
   const [startTime] = useState(new Date());
   const [loading, setLoading] = useState(false);
 
-  const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL,
-  });
-
   useEffect(() => {
     const fetchTest = async () => {
       setLoading(true);
       try {
-        const response = await api.get(
-          `/api/tests/${testId}`,
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await api.get(`/tests/${testId}`);
         setTest(response.data);
         setTimeLeft(response.data.metadata.timeAllotted / 1000);
       } catch (error) {
@@ -44,7 +34,7 @@ function TestInterfacePage() {
       }
     };
     fetchTest();
-  }, [testId, token]);
+  }, [testId]);
 
   useEffect(() => {
     if (timeLeft <= 0 && test) {
@@ -58,7 +48,10 @@ function TestInterfacePage() {
   const handleAnswer = (questionId, answer) => {
     setAnswers((prev) => ({
       ...prev,
-      [questionId]: { userAnswer: answer, timeSpent: Date.now() - startTime },
+      [questionId]: {
+        userAnswer: answer,
+        timeSpent: (Date.now() - startTime) / 1000,
+      },
     }));
   };
 
@@ -73,19 +66,26 @@ function TestInterfacePage() {
 
   const handleSubmit = async () => {
     const endTime = new Date();
-    const formattedResponses = Object.keys(answers).map((questionId) => ({
-      questionId,
-      userAnswer: answers[questionId].userAnswer,
-      timeSpent: Math.floor(answers[questionId].timeSpent / 1000),
-    }));
+    const formattedResponses = Object.entries(answers).map(
+      ([questionId, data]) => ({
+        questionId,
+        userAnswer: data.userAnswer,
+        timeSpent: Math.floor(data.timeSpent),
+      })
+    );
 
     setLoading(true);
     try {
-      const response = await api.post(
-        `/api/tests/submit/${testId}`,
-        { responses: formattedResponses, startTime, endTime },
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
+      const response = await api.post(`/tests/submit/${testId}`, {
+        responses: formattedResponses,
+        startTime,
+        endTime,
+      });
+      console.log({
+        responses: formattedResponses,
+        startTime,
+        endTime,
+      });
       dispatch(addTestResult(response.data));
       toast.success("Test submitted successfully!");
       navigate(`/test-summary/${response.data._id}`);
@@ -96,106 +96,90 @@ function TestInterfacePage() {
     }
   };
 
-  if (loading)
-    return (
-      <div className="text-center pt-20 text-gray-600">Loading test...</div>
-    );
-  if (!test)
-    return (
-      <div className="text-center pt-20 text-gray-600">Test not found</div>
-    );
+  if (loading) return <div className="text-center py-12">Loading test...</div>;
+  if (!test) return <div className="text-center py-12">Test not found</div>;
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
-        <div className="pt-12 pb-20 px-6 flex-1">
-          <div className="flex justify-between items-center mb-6">
-            <h1 className="text-2xl font-semibold text-gray-800">
-              Test: {test.name}
-            </h1>
-            <p className="text-lg font-semibold">
-              Time Left: {Math.floor(timeLeft / 60)}:
-              {(timeLeft % 60).toString().padStart(2, "0")}
-            </p>
+    <div className="container py-12">
+      <Card className="mb-6">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold text-gray-800">
+            Test: {test.name}
+          </h1>
+          <p className="text-lg font-semibold">
+            Time Left: {Math.floor(timeLeft / 60)}:
+            {(timeLeft % 60).toString().padStart(2, "0")}
+          </p>
+        </div>
+      </Card>
+      <div className="flex flex-col md:flex-row gap-6">
+        <div className="flex-1">
+          <TestQuestion
+            question={test.questions[currentQuestion]}
+            index={currentQuestion}
+            answer={answers[test.questions[currentQuestion]._id]?.userAnswer}
+            onAnswer={handleAnswer}
+            onMarkForReview={toggleMarkForReview}
+            isMarked={markedForReview.has(test.questions[currentQuestion]._id)}
+          />
+          <div className="flex justify-between mt-4">
+            <Button
+              onClick={() =>
+                setCurrentQuestion((prev) => Math.max(0, prev - 1))
+              }
+              disabled={currentQuestion === 0 || loading}
+              variant="secondary"
+            >
+              Previous
+            </Button>
+            <Button
+              onClick={() =>
+                setCurrentQuestion((prev) =>
+                  Math.min(test.questions.length - 1, prev + 1)
+                )
+              }
+              disabled={
+                currentQuestion === test.questions.length - 1 || loading
+              }
+              variant="secondary"
+            >
+              Next
+            </Button>
           </div>
-          <div className="flex space-x-6">
-            <div className="flex-1">
-              <TestQuestion
-                question={test.questions[currentQuestion]}
-                index={currentQuestion}
-                answer={
-                  answers[test.questions[currentQuestion]._id]?.userAnswer
-                }
-                onAnswer={handleAnswer}
-                onMarkForReview={toggleMarkForReview}
-                isMarked={markedForReview.has(
-                  test.questions[currentQuestion]._id
-                )}
-              />
-              <div className="mt-6 flex justify-between">
-                <button
-                  onClick={() =>
-                    setCurrentQuestion((prev) => Math.max(0, prev - 1))
-                  }
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md disabled:opacity-50"
-                  disabled={currentQuestion === 0 || loading}
-                >
-                  Previous
-                </button>
-                <button
-                  onClick={() =>
-                    setCurrentQuestion((prev) =>
-                      Math.min(test.questions.length - 1, prev + 1)
-                    )
-                  }
-                  className="bg-gray-600 text-white px-4 py-2 rounded-md disabled:opacity-50"
-                  disabled={
-                    currentQuestion === test.questions.length - 1 || loading
-                  }
-                >
-                  Next
-                </button>
-              </div>
+          <Button
+            onClick={() => window.confirm("Are you sure?") && handleSubmit()}
+            className="w-full mt-4"
+            disabled={loading}
+          >
+            {loading ? "Submitting..." : "Submit Test"}
+          </Button>
+        </div>
+        <Card className="w-full md:w-40">
+          <h3 className="text-lg font-semibold mb-2">Questions</h3>
+          <div className="grid grid-cols-4 gap-2">
+            {test.questions.map((q, idx) => (
               <button
-                onClick={() =>
-                  window.confirm("Are you sure?") && handleSubmit()
-                }
-                className="mt-4 w-full bg-blue-500 text-white p-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
+                key={q._id}
+                onClick={() => setCurrentQuestion(idx)}
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
+                  currentQuestion === idx
+                    ? "bg-blue-500 text-white"
+                    : answers[q._id]
+                    ? "bg-green-500 text-white"
+                    : markedForReview.has(q._id)
+                    ? "bg-yellow-500 text-white"
+                    : "bg-gray-200"
+                }`}
                 disabled={loading}
               >
-                {loading ? "Submitting..." : "Submit Test"}
+                {idx + 1}
               </button>
-            </div>
-            <div className="w-40 bg-white border border-gray-200 rounded-md p-4">
-              <h3 className="text-lg font-semibold mb-2">Questions</h3>
-              <div className="grid grid-cols-4 gap-2">
-                {test.questions.map((q, idx) => (
-                  <button
-                    key={q._id}
-                    onClick={() => setCurrentQuestion(idx)}
-                    className={`w-8 h-8 rounded-full flex items-center justify-center text-sm ${
-                      currentQuestion === idx
-                        ? "bg-blue-500 text-white"
-                        : answers[q._id]
-                        ? "bg-green-500 text-white"
-                        : markedForReview.has(q._id)
-                        ? "bg-yellow-500 text-white"
-                        : "bg-gray-200"
-                    }`}
-                    disabled={loading}
-                  >
-                    {idx + 1}
-                  </button>
-                ))}
-              </div>
-            </div>
+            ))}
           </div>
-        </div>
-        <Footer />
+        </Card>
       </div>
     </div>
   );
-}
+};
 
 export default TestInterfacePage;

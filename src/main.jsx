@@ -6,6 +6,7 @@ import App from "./App";
 import "./index.css";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import "katex/dist/katex.min.css";
 
 const rootElement = document.getElementById("root");
 const root = createRoot(rootElement);
