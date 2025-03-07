@@ -1,11 +1,12 @@
+// src/pages/AddQuestionPage.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer";
 import TestQuestion from "../components/TestQuestion";
+import ImageUploader from "../components/ImageUploader";
+import { questionHierarchy } from "../data/questionHierarchy";
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -15,16 +16,17 @@ function AddQuestionPage() {
   const navigate = useNavigate();
   const { token, user } = useSelector((state) => state.user);
   const [formData, setFormData] = useState({
-    category: "physics",
-    subcategory: "",
-    difficulty: "Medium",
+    exam: "jee-main",
+    class: "11",
+    subject: "",
+    topic: "",
+    chapter: "",
     type: "MCQ",
-    contentBlocks: [{ type: "text", value: "" }],
-    options: [{ id: "A", text: "", isCorrect: false }],
+    content: "",
+    options: [{ id: "A", content: "", isCorrect: false }],
     correctAnswer: "",
-    explanationBlocks: [{ type: "text", value: "" }],
+    explanation: "",
   });
-  const [imageFiles, setImageFiles] = useState([]);
   const [loading, setLoading] = useState(false);
   const [preview, setPreview] = useState(false);
 
@@ -38,23 +40,22 @@ function AddQuestionPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    if (name === "subject") {
+      setFormData((prev) => ({
+        ...prev,
+        subject: value,
+        topic: "",
+        chapter: "",
+      }));
+    } else if (name === "topic") {
+      setFormData((prev) => ({ ...prev, topic: value, chapter: "" }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
   };
 
-  const handleContentChange = (index, field, value) => {
-    const newBlocks = [...formData.contentBlocks];
-    newBlocks[index][field] = value;
-    setFormData((prev) => ({ ...prev, contentBlocks: newBlocks }));
-  };
-
-  const addContentBlock = (type) => {
-    setFormData((prev) => ({
-      ...prev,
-      contentBlocks: [
-        ...prev.contentBlocks,
-        { type, value: type === "image" ? "" : "" },
-      ],
-    }));
+  const handleContentChange = (e) => {
+    setFormData((prev) => ({ ...prev, content: e.target.value }));
   };
 
   const handleOptionChange = (index, field, value) => {
@@ -67,59 +68,58 @@ function AddQuestionPage() {
     const newId = String.fromCharCode(65 + formData.options.length);
     setFormData((prev) => ({
       ...prev,
-      options: [...prev.options, { id: newId, text: "", isCorrect: false }],
+      options: [...prev.options, { id: newId, content: "", isCorrect: false }],
     }));
   };
 
-  const handleExplanationChange = (index, value) => {
-    const newBlocks = [...formData.explanationBlocks];
-    newBlocks[index].value = value;
-    setFormData((prev) => ({ ...prev, explanationBlocks: newBlocks }));
-  };
-
-  const addExplanationBlock = (type) => {
+  const removeOption = (index) => {
     setFormData((prev) => ({
       ...prev,
-      explanationBlocks: [...prev.explanationBlocks, { type, value: "" }],
+      options: prev.options.filter((_, i) => i !== index),
     }));
   };
 
-  const handleImageChange = (e) => {
-    const files = [...e.target.files];
-    setImageFiles(files);
-    const newContentBlocks = [...formData.contentBlocks];
-    files.forEach((file, idx) => {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const existingImageIndex = newContentBlocks.findIndex(
-          (b, i) => b.type === "image" && i >= index + idx
-        );
-        if (existingImageIndex !== -1) {
-          newContentBlocks[existingImageIndex] = {
-            type: "image",
-            url: reader.result,
-            description: "",
-          };
-        }
-        setFormData((prev) => ({ ...prev, contentBlocks: newContentBlocks }));
-      };
-      reader.readAsDataURL(file);
-    });
+  const handleExplanationChange = (e) => {
+    setFormData((prev) => ({ ...prev, explanation: e.target.value }));
+  };
+
+  const handleImageUploaded = (url, target) => {
+    if (target === "content") {
+      setFormData((prev) => ({
+        ...prev,
+        content: `${prev.content}\n![Image](${url})`.trim(),
+      }));
+    } else if (target.startsWith("option-")) {
+      const index = parseInt(target.split("-")[1], 10);
+      const newOptions = [...formData.options];
+      newOptions[index].content =
+        `${newOptions[index].content}\n![Image](${url})`.trim();
+      setFormData((prev) => ({ ...prev, options: newOptions }));
+    } else if (target === "explanation") {
+      setFormData((prev) => ({
+        ...prev,
+        explanation: `${prev.explanation}\n![Image](${url})`.trim(),
+      }));
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     const data = new FormData();
-    data.append("category", formData.category);
-    data.append("subcategory", formData.subcategory);
-    data.append("difficulty", formData.difficulty);
+    data.append("exam", formData.exam);
+    data.append("class", formData.class);
+    data.append("subject", formData.subject);
+    data.append("topic", formData.topic);
+    data.append("chapter", formData.chapter);
     data.append("type", formData.type);
-    data.append("content", JSON.stringify(formData.contentBlocks));
-    data.append("options", JSON.stringify(formData.options));
+    data.append("content", formData.content);
+    data.append(
+      "options",
+      formData.type === "MCQ" ? JSON.stringify(formData.options) : "[]"
+    );
     data.append("correctAnswer", formData.correctAnswer);
-    data.append("explanation", JSON.stringify(formData.explanationBlocks));
-    imageFiles.forEach((file) => data.append("images", file));
+    data.append("explanation", formData.explanation || "");
 
     try {
       await api.post("/api/questions/add", data, {
@@ -139,216 +139,200 @@ function AddQuestionPage() {
 
   const previewQuestion = {
     _id: "preview",
-    content: formData.contentBlocks.map((block) => ({
-      type: block.type,
-      value: block.value,
-      url: block.url || (block.type === "image" ? "" : undefined),
-      data: block.data,
-    })),
+    content: [{ type: "text", value: formData.content }],
     type: formData.type,
-    options: formData.options,
+    options: formData.options.map((opt) => ({ id: opt.id, text: opt.content })),
     correctAnswer: formData.correctAnswer,
+    explanation: formData.explanation,
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
+    <div className="container flex min-h-screen  font-sans">
+  
+      <div className="flex-1 flex flex-col">
         <div className="pt-12 pb-20 px-6 flex-1">
           <div className="border border-gray-200 rounded-md p-6 mb-6 bg-white">
             <h1 className="text-2xl font-semibold text-gray-800 mb-2">
               Add a New Question
             </h1>
             <p className="text-sm text-gray-600">
-              Create a question with text, images, equations, or tables
+              Create a JEE question with text, images, or equations
             </p>
           </div>
-          <form
-            onSubmit={handleSubmit}
-            className="border border-gray-200 rounded-md p-6 bg-white mb-6"
-          >
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Exam and Class */}
+            <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Category
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Exam
                 </label>
                 <select
-                  name="category"
-                  value={formData.category}
+                  name="exam"
+                  value={formData.exam}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
                   disabled={loading}
                 >
-                  <option value="physics">Physics</option>
-                  <option value="chemistry">Chemistry</option>
-                  <option value="maths">Maths</option>
+                  <option value="jee-main">JEE Main</option>
+                  <option value="jee-advanced">JEE Advanced</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Subcategory
-                </label>
-                <input
-                  type="text"
-                  name="subcategory"
-                  value={formData.subcategory}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  required
-                  disabled={loading}
-                />
-              </div>
-              <div>
-                <label className="block text-sm text-gray-700 mb-1">
-                  Difficulty
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Class
                 </label>
                 <select
-                  name="difficulty"
-                  value={formData.difficulty}
+                  name="class"
+                  value={formData.class}
                   onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
                   disabled={loading}
                 >
-                  <option value="Easy">Easy</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Hard">Hard</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm text-gray-700 mb-1">Type</label>
-                <select
-                  name="type"
-                  value={formData.type}
-                  onChange={handleInputChange}
-                  className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                  disabled={loading}
-                >
-                  <option value="MCQ">Multiple Choice</option>
-                  <option value="Numerical">Numerical</option>
-                  <option value="True/False">True/False</option>
+                  <option value="11">Class 11</option>
+                  <option value="12">Class 12</option>
                 </select>
               </div>
             </div>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                Question Content
-              </h2>
-              {formData.contentBlocks.map((block, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 rounded-md p-4 mb-2"
+
+            {/* Subject, Topic, Chapter */}
+            <div className="grid grid-cols-3 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Subject
+                </label>
+                <select
+                  name="subject"
+                  value={formData.subject}
+                  onChange={handleInputChange}
+                  className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                  disabled={loading}
                 >
+                  <option value="">Select Subject</option>
+                  {Object.keys(questionHierarchy).map((sub) => (
+                    <option key={sub} value={sub}>
+                      {sub.charAt(0).toUpperCase() + sub.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {formData.subject && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Topic
+                  </label>
                   <select
-                    value={block.type}
-                    onChange={(e) =>
-                      handleContentChange(index, "type", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm mb-2"
+                    name="topic"
+                    value={formData.topic}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
                     disabled={loading}
                   >
-                    <option value="text">Text</option>
-                    <option value="image">Image</option>
-                    <option value="equation">Equation (LaTeX)</option>
-                    <option value="table">Table</option>
+                    <option value="">Select Topic</option>
+                    {Object.keys(questionHierarchy[formData.subject]).map(
+                      (top) => (
+                        <option key={top} value={top}>
+                          {top
+                            .split("-")
+                            .map(
+                              (word) =>
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                            )
+                            .join(" ")}
+                        </option>
+                      )
+                    )}
                   </select>
-                  {block.type === "text" || block.type === "equation" ? (
-                    <textarea
-                      value={block.value}
-                      onChange={(e) =>
-                        handleContentChange(index, "value", e.target.value)
-                      }
-                      placeholder={
-                        block.type === "text"
-                          ? "Enter text..."
-                          : "Enter LaTeX..."
-                      }
-                      className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                      rows="3"
-                      disabled={loading}
-                    />
-                  ) : block.type === "image" ? (
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageChange}
-                      className="w-full text-sm text-gray-600"
-                      disabled={loading}
-                    />
-                  ) : (
-                    <textarea
-                      value={block.data ? JSON.stringify(block.data) : ""}
-                      onChange={(e) =>
-                        handleContentChange(
-                          index,
-                          "data",
-                          JSON.parse(e.target.value)
-                        )
-                      }
-                      placeholder='Enter table as JSON, e.g., [["A", "B"], ["1", "2"]]'
-                      className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                      rows="3"
-                      disabled={loading}
-                    />
-                  )}
                 </div>
-              ))}
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => addContentBlock("text")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Text
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addContentBlock("image")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Image
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addContentBlock("equation")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Equation
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addContentBlock("table")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Table
-                </button>
-              </div>
+              )}
+              {formData.topic && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Chapter
+                  </label>
+                  <select
+                    name="chapter"
+                    value={formData.chapter}
+                    onChange={handleInputChange}
+                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                    disabled={loading}
+                  >
+                    <option value="">Select Chapter</option>
+                    {questionHierarchy[formData.subject][formData.topic].map(
+                      (chap) => (
+                        <option key={chap} value={chap}>
+                          {chap
+                            .split("-")
+                            .map(
+                              (word) =>
+                                word.charAt(0).toUpperCase() + word.slice(1)
+                            )
+                            .join(" ")}
+                        </option>
+                      )
+                    )}
+                  </select>
+                </div>
+              )}
             </div>
+
+            {/* Question Type */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Question Type
+              </label>
+              <select
+                name="type"
+                value={formData.type}
+                onChange={handleInputChange}
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                disabled={loading}
+              >
+                <option value="MCQ">Multiple Choice (MCQ)</option>
+                <option value="Numerical">Numerical</option>
+                <option value="True/False">True/False</option>
+              </select>
+            </div>
+
+            {/* Question Content */}
+            <div className="border border-gray-200 rounded-md p-4 bg-white">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Question Content (Markdown supported)
+              </label>
+              <textarea
+                value={formData.content}
+                onChange={handleContentChange}
+                placeholder="Enter question text, images (e.g., ![Image](url)), or LaTeX (e.g., $$x^2$$)"
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                rows="5"
+                disabled={loading}
+              />
+              <ImageUploader />
+            </div>
+
+            {/* Options (for MCQ only) */}
             {formData.type === "MCQ" && (
-              <div className="mb-4">
+              <div className="border border-gray-200 rounded-md p-4 bg-white">
                 <h2 className="text-lg font-semibold text-gray-800 mb-2">
                   Options
                 </h2>
-                {formData.options.map((option, index) => (
+                {formData.options.map((opt, index) => (
                   <div
-                    key={option.id}
-                    className="border border-gray-200 rounded-md p-4 mb-2 flex items-center gap-2"
+                    key={opt.id}
+                    className="flex items-center space-x-2 mb-2"
                   >
                     <input
                       type="text"
-                      value={option.text}
+                      value={opt.content}
                       onChange={(e) =>
-                        handleOptionChange(index, "text", e.target.value)
+                        handleOptionChange(index, "content", e.target.value)
                       }
-                      placeholder={`Option ${option.id}`}
+                      placeholder={`Option ${opt.id}`}
                       className="flex-1 p-2 border border-gray-300 rounded-md text-sm"
                       disabled={loading}
                     />
                     <select
-                      value={option.isCorrect}
+                      value={opt.isCorrect}
                       onChange={(e) =>
                         handleOptionChange(index, "isCorrect", e.target.value)
                       }
@@ -358,20 +342,30 @@ function AddQuestionPage() {
                       <option value="false">Incorrect</option>
                       <option value="true">Correct</option>
                     </select>
+                    <button
+                      type="button"
+                      onClick={() => removeOption(index)}
+                      className="text-red-500 hover:text-red-700"
+                      disabled={loading || formData.options.length <= 1}
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
                 <button
                   type="button"
                   onClick={addOption}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                  className="mt-2 border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
                   disabled={loading}
                 >
                   Add Option
                 </button>
               </div>
             )}
-            <div className="mb-4">
-              <label className="block text-sm text-gray-700 mb-1">
+
+            {/* Correct Answer */}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
                 Correct Answer
               </label>
               <input
@@ -380,88 +374,52 @@ function AddQuestionPage() {
                 value={formData.correctAnswer}
                 onChange={handleInputChange}
                 placeholder={
-                  formData.type === "MCQ" ? "e.g., B" : "e.g., 17.32"
+                  formData.type === "MCQ"
+                    ? "Enter option ID (e.g., A)"
+                    : "Enter numerical value or True/False"
                 }
-                className="w-full p-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-500"
-                required
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
                 disabled={loading}
               />
             </div>
-            <div className="mb-4">
-              <h2 className="text-lg font-semibold text-gray-800 mb-2">
-                Explanation
-              </h2>
-              {formData.explanationBlocks.map((block, index) => (
-                <div
-                  key={index}
-                  className="border border-gray-200 rounded-md p-4 mb-2"
-                >
-                  <select
-                    value={block.type}
-                    onChange={(e) =>
-                      handleContentChange(index, "type", e.target.value)
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm mb-2"
-                    disabled={loading}
-                  >
-                    <option value="text">Text</option>
-                    <option value="equation">Equation (LaTeX)</option>
-                  </select>
-                  <textarea
-                    value={block.value}
-                    onChange={(e) =>
-                      handleExplanationChange(index, e.target.value)
-                    }
-                    placeholder={
-                      block.type === "text"
-                        ? "Enter explanation..."
-                        : "Enter LaTeX..."
-                    }
-                    className="w-full p-2 border border-gray-300 rounded-md text-sm"
-                    rows="3"
-                    disabled={loading}
-                  />
-                </div>
-              ))}
-              <div className="flex space-x-2">
-                <button
-                  type="button"
-                  onClick={() => addExplanationBlock("text")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Text
-                </button>
-                <button
-                  type="button"
-                  onClick={() => addExplanationBlock("equation")}
-                  className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
-                  disabled={loading}
-                >
-                  Add Equation
-                </button>
-              </div>
+
+            {/* Explanation */}
+            <div className="border border-gray-200 rounded-md p-4 bg-white">
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Explanation (Optional, Markdown supported)
+              </label>
+              <textarea
+                value={formData.explanation}
+                onChange={handleExplanationChange}
+                placeholder="Enter explanation, images (e.g., ![Image](url)), or LaTeX (e.g., $$x^2$$)"
+                className="w-full p-2 border border-gray-300 rounded-md text-sm"
+                rows="5"
+                disabled={loading}
+              />
             </div>
+
+            {/* Submit and Preview Buttons */}
             <div className="flex space-x-4">
+              <button
+                type="submit"
+                className="bg-blue-500 text-white text-sm p-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
+                disabled={loading}
+              >
+                {loading ? "Submitting..." : "Add Question"}
+              </button>
               <button
                 type="button"
                 onClick={() => setPreview(!preview)}
-                className="w-full border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
+                className="border border-gray-300 text-gray-600 text-sm p-2 rounded-md hover:bg-gray-100 disabled:opacity-50"
                 disabled={loading}
               >
-                {preview ? "Hide Preview" : "Preview Question"}
-              </button>
-              <button
-                type="submit"
-                className="w-full bg-blue-500 text-white text-sm p-2 rounded-md hover:bg-blue-600 transition disabled:opacity-50"
-                disabled={loading}
-              >
-                {loading ? "Adding..." : "Add Question"}
+                {preview ? "Hide Preview" : "Show Preview"}
               </button>
             </div>
           </form>
+
           {preview && (
-            <div className="border border-gray-200 rounded-md p-6 bg-white">
+            <div className="border border-gray-200 rounded-md p-6 bg-white mt-6">
               <h2 className="text-lg font-semibold text-gray-800 mb-4">
                 Question Preview
               </h2>
@@ -476,7 +434,6 @@ function AddQuestionPage() {
             </div>
           )}
         </div>
-        <Footer />
       </div>
     </div>
   );

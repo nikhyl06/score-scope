@@ -1,29 +1,21 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
-import { useSelector } from "react-redux";
+import api from "../api";
 import { toast } from "react-toastify";
-import Sidebar from "../components/Sidebar";
-import Footer from "../components/Footer";
+import Card from "../components/Card";
+import Button from "../components/Button";
 
-const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
-});
-
-function TestSelectionPage() {
-  const navigate = useNavigate();
-  const { token } = useSelector((state) => state.user);
+const TestSelectionPage = () => {
   const [tests, setTests] = useState([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTests = async () => {
       setLoading(true);
       try {
-        const response = await api.get("/api/tests", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const response = await api.get("/tests");
         setTests(response.data);
       } catch (error) {
         toast.error("Error fetching tests");
@@ -32,7 +24,7 @@ function TestSelectionPage() {
       }
     };
     fetchTests();
-  }, [token]);
+  }, []);
 
   const filteredTests = tests.filter(
     (t) =>
@@ -41,69 +33,44 @@ function TestSelectionPage() {
   );
 
   return (
-    <div className="flex min-h-screen bg-gray-50 font-sans">
-      <Sidebar />
-      <div className="flex-1 ml-64 flex flex-col">
-        <div className="pt-12 pb-20 px-6 flex-1">
-          <div className="border border-gray-200 rounded-md p-6 mb-6 bg-white">
-            <h1 className="text-2xl font-semibold text-gray-800 mb-2">
-              Choose a Test
-            </h1>
-            <p className="text-sm text-gray-600">
-              Select a test to start your practice
-            </p>
-          </div>
-          <div className="border border-gray-200 rounded-md p-4 mb-6 bg-white">
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search tests by name or exam..."
-              className="w-full p-2 border border-gray-300 rounded-md text-sm"
-            />
-          </div>
-          <div className="border border-gray-200 rounded-md p-6 bg-white">
-            <h2 className="text-lg font-semibold text-gray-800 mb-3">
-              Available Tests ({filteredTests.length})
-            </h2>
-            {loading ? (
-              <div>Loading tests...</div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredTests.map((test) => (
-                  <div
-                    key={test._id}
-                    className="border border-gray-200 rounded-md p-4 bg-white hover:border-gray-300 transition"
-                  >
-                    <h3 className="text-md font-medium text-gray-800 mb-1">
-                      {test.name}
-                    </h3>
-                    <p className="text-xs text-gray-600 mb-1">
-                      {test.exam} - Class {test.class}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Questions: {test.questions.length}
-                    </p>
-                    <p className="text-xs text-gray-500 mb-2">
-                      Marks: {test.metadata.marks} | Time:{" "}
-                      {Math.floor(test.metadata.timeAllotted / 60000)} min
-                    </p>
-                    <button
-                      onClick={() => navigate(`/test/${test._id}`)}
-                      className="w-full border border-blue-500 text-blue-500 text-sm p-2 rounded-md hover:bg-blue-50 transition"
-                    >
-                      Start Test
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-        <Footer />
+    <div className="container py-12">
+      <h1 className="text-3xl font-bold text-gray-800 mb-6">Choose a Test</h1>
+      <Card className="mb-6">
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search tests..."
+          className="w-full p-2 border border-gray-300 rounded-md"
+        />
+      </Card>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {loading ? (
+          <p>Loading tests...</p>
+        ) : filteredTests.length > 0 ? (
+          filteredTests.map((test) => (
+            <Card key={test._id} title={test.name}>
+              <p className="text-sm text-gray-600 mb-2">
+                {test.exam} - Class {test.class}
+              </p>
+              <p className="text-sm text-gray-600 mb-4">
+                Questions: {test.questions.length} | Time:{" "}
+                {Math.floor(test.metadata.timeAllotted / 60000)} min
+              </p>
+              <Button
+                onClick={() => navigate(`/test/${test._id}`)}
+                variant="secondary"
+              >
+                Start Test
+              </Button>
+            </Card>
+          ))
+        ) : (
+          <p>No tests found.</p>
+        )}
       </div>
     </div>
   );
-}
+};
 
 export default TestSelectionPage;
