@@ -95,6 +95,7 @@ const TestSummaryPage = () => {
   if (!result) return <div className="text-center py-12">Result not found</div>;
 
   const { testId: test, score, totalMarks, responses, analysis } = result;
+  console.log(result)
   const percentage = ((score / totalMarks) * 100).toFixed(1);
   const stats = {
     correct: responses.filter((r) => r.isCorrect).length,
@@ -154,7 +155,7 @@ const TestSummaryPage = () => {
         data: [
           analysis.mistakeDistribution.conceptual,
           analysis.mistakeDistribution.silly,
-          analysis.mistakeDistribution.notStudied,
+          analysis.mistakeDistribution.not_studied,
         ],
         backgroundColor: ["#f87171", "#fbbf24", "#9ca3af"],
       },
@@ -170,7 +171,7 @@ const TestSummaryPage = () => {
         <div className="flex justify-center mb-6">
           <ProgressCircle percentage={percentage} size={120} />
         </div>
-        <p className="text-xl text-center mb-4">
+        <p className="text-xl text-center mb-12">
           {score} / {totalMarks} ({percentage}%)
         </p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -357,7 +358,7 @@ const TestSummaryPage = () => {
                               Conceptual Mistake
                             </option>
                             <option value="silly">Silly Mistake</option>
-                            <option value="notStudied">Haven't Studied</option>
+                            <option value="not_studied">Haven't Studied</option>
                           </select>
                         </div>
                       )}

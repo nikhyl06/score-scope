@@ -35,6 +35,7 @@ const TestInterfacePage = () => {
     };
     fetchTest();
   }, [testId]);
+  console.log(test);
 
   useEffect(() => {
     if (timeLeft <= 0 && test) {
@@ -87,6 +88,7 @@ const TestInterfacePage = () => {
         endTime,
       });
       dispatch(addTestResult(response.data));
+      console.log(response.data);
       toast.success("Test submitted successfully!");
       navigate(`/test-summary/${response.data._id}`);
     } catch (error) {
@@ -98,6 +100,7 @@ const TestInterfacePage = () => {
 
   if (loading) return <div className="text-center py-12">Loading test...</div>;
   if (!test) return <div className="text-center py-12">Test not found</div>;
+  
 
   return (
     <div className="container py-12">
@@ -117,10 +120,14 @@ const TestInterfacePage = () => {
           <TestQuestion
             question={test.questions[currentQuestion]}
             index={currentQuestion}
-            answer={answers[test.questions[currentQuestion]._id]?.userAnswer}
+            answer={
+              answers[test.questions[currentQuestion]._id]?.userAnswer
+            }
             onAnswer={handleAnswer}
             onMarkForReview={toggleMarkForReview}
-            isMarked={markedForReview.has(test.questions[currentQuestion]._id)}
+            isMarked={markedForReview.has(
+              test.questions[currentQuestion]._id
+            )}
           />
           <div className="flex justify-between mt-4">
             <Button

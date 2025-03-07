@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 import api from "../api";
 import { toast } from "react-toastify";
 import {
@@ -28,7 +27,6 @@ ChartJS.register(
 
 const AnalysisPage = () => {
   const navigate = useNavigate();
-  const { tests } = useSelector((state) => state.user);
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -122,8 +120,9 @@ const AnalysisPage = () => {
   results.forEach((r) => {
     mistakeDist.conceptual += r.analysis.mistakeDistribution.conceptual;
     mistakeDist.silly += r.analysis.mistakeDistribution.silly;
-    mistakeDist.notStudied += r.analysis.mistakeDistribution.notStudied;
+    mistakeDist.notStudied += r.analysis.mistakeDistribution.not_studied;
   });
+  console.log(results);
   const mistakePieData = {
     labels: ["Conceptual", "Silly", "Not Studied"],
     datasets: [
