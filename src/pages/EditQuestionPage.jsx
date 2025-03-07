@@ -40,7 +40,6 @@ function EditQuestionPage() {
             headers: { Authorization: `Bearer ${token}` },
           });
           const data = response.data;
-          console.log(data)
           const formattedOptions =
             data.options.length > 0
               ? data.options.map((opt, idx) => ({
@@ -148,7 +147,6 @@ function EditQuestionPage() {
         });
       }
 
-      console.log("Sending FormData:", Array.from(formDataToSend.entries()));
 
       await api[method](url, formDataToSend, {
         headers: { Authorization: `Bearer ${token}` },
